@@ -32,7 +32,7 @@ def compute_content_cost(a_C, a_G):
     a_G_unrolled = tf.transpose(tf.reshape(a_G, shape=[m, -1, n_C]), perm=[0,2,1])
     
     # compute the cost with tensorflow (≈1 line)
-    J_content = tf.reduce_sum(tf.square(tf.subtract(a_C_unrolled, a_G_unrolled))) * (1/(4 * n_C * n_H * n_W))
+    J_content = 0.5 * tf.reduce_sum(tf.square(tf.subtract(gram_matrix(a_C_unrolled), gram_matrix(a_G_unrolled)))) * (1/(4 * n_C * n_H * n_W))
     ### END CODE HERE ###
     
     return J_content
@@ -122,7 +122,7 @@ def compute_style_cost(model, STYLE_LAYERS):
     return J_style
 
 # GRADED FUNCTION: total_cost
-def total_cost(J_content, J_style, alpha = 10, beta = 40):
+def total_cost(J_content, J_style, alpha = 10):
     """
     Computes the total cost function
     
@@ -137,7 +137,7 @@ def total_cost(J_content, J_style, alpha = 10, beta = 40):
     """
     
     ### START CODE HERE ### (≈1 line)
-    J = alpha * J_content + beta * J_style
+    J = (1 - alpha) * J_content + alpha * J_style
     ### END CODE HERE ###
     
     return J
