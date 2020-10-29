@@ -10,14 +10,14 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
 class CONFIG:
-    IMAGE_WIDTH = 225
-    IMAGE_HEIGHT = 300
+    IMAGE_WIDTH = 500
+    IMAGE_HEIGHT = 750
     COLOR_CHANNELS = 3
     NOISE_RATIO = 0.6
     MEANS = np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3)) 
     VGG_MODEL = 'pretrained-model/imagenet-vgg-verydeep-19.mat' # Pick the VGG 19-layer model by from the paper "Very Deep Convolutional Networks for Large-Scale Image Recognition".
-    STYLE_IMAGE = 'images/mikael_perso_outline.jpg' # Style image to use.
-    CONTENT_IMAGE = 'images/blond_girl_portrait.jpg' # Content image to use.
+    STYLE_IMAGE = 'images/1920_1080/light_corridor.jpg' # Style image to use.
+    CONTENT_IMAGE = 'images/1920_1080/paris_1.jpg' # Content image to use.
     OUTPUT_DIR = 'output/'
     
 def load_vgg_model(path):
@@ -164,12 +164,14 @@ def reshape_and_normalize_image(image):
     """
     Reshape and normalize the input image (content or style)
     """
-    
+ 
     # Reshape image to mach expected input of VGG16
     image = np.reshape(image, ((1,) + image.shape))
+
+    MEANS = np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
     
     # Substract the mean to match the expected input of VGG16
-    image = image - CONFIG.MEANS
+    image = image - MEANS
     
     return image
 

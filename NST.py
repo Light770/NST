@@ -10,6 +10,9 @@ tf.disable_v2_behavior()
 import pprint
 
 
+
+CONFIG.IMAGE_HEIGHT, CONFIG.IMAGE_WIDTH, CONFIG.COLOR_CHANNELS = ((img.imread(CONFIG.CONTENT_IMAGE)).shape)
+
 # GRADED FUNCTION: compute_content_cost
 def compute_content_cost(a_C, a_G):
     """
@@ -23,7 +26,6 @@ def compute_content_cost(a_C, a_G):
     J_content -- scalar that you compute using equation 1 above.
     """
     
-    ### START CODE HERE ###
     # Retrieve dimensions from a_G (≈1 line)
     m, n_H, n_W, n_C = a_G.get_shape().as_list()
     
@@ -32,8 +34,7 @@ def compute_content_cost(a_C, a_G):
     a_G_unrolled = tf.transpose(tf.reshape(a_G, shape=[m, -1, n_C]), perm=[0,2,1])
     
     # compute the cost with tensorflow (≈1 line)
-    J_content = 0.5 * tf.reduce_sum(tf.square(tf.subtract(gram_matrix(a_C_unrolled), gram_matrix(a_G_unrolled)))) * (1/(4 * n_C * n_H * n_W))
-    ### END CODE HERE ###
+    J_content = tf.reduce_sum(tf.square(tf.subtract(a_C_unrolled, a_G_unrolled))) * (1/(4 * n_C * n_H * n_W))
     
     return J_content
 
@@ -47,9 +48,7 @@ def gram_matrix(A):
     GA -- Gram matrix of A, of shape (n_C, n_C)
     """
     
-    ### START CODE HERE ### (≈1 line)
     GA = tf.matmul(A, A, transpose_b = True)
-    ### END CODE HERE ###
     
     return GA
 
@@ -63,8 +62,7 @@ def compute_layer_style_cost(a_S, a_G):
     Returns: 
     J_style_layer -- tensor representing a scalar value, style cost defined above by equation (2)
     """
-    
-    ### START CODE HERE ###
+
     # Retrieve dimensions from a_G (≈1 line)
     m, n_H, n_W, n_C = a_G.get_shape().as_list()
     
@@ -78,8 +76,6 @@ def compute_layer_style_cost(a_S, a_G):
 
     # Computing the loss (≈1 line)
     J_style_layer = (1/(4 * (n_H * n_W)**2 * n_C**2)) * tf.reduce_sum(tf.square(tf.subtract(GS, GG)))
-    
-    ### END CODE HERE ###
     
     return J_style_layer
 
@@ -122,7 +118,7 @@ def compute_style_cost(model, STYLE_LAYERS):
     return J_style
 
 # GRADED FUNCTION: total_cost
-def total_cost(J_content, J_style, alpha = 10):
+def total_cost(J_content, J_style, alpha = 10, beta = 40):
     """
     Computes the total cost function
     
@@ -136,9 +132,7 @@ def total_cost(J_content, J_style, alpha = 10):
     J -- total cost as defined by the formula above.
     """
     
-    ### START CODE HERE ### (≈1 line)
-    J = (1 - alpha) * J_content + alpha * J_style
-    ### END CODE HERE ###
+    J = alpha * J_content + beta * J_style
     
     return J
 
@@ -188,20 +182,20 @@ sess.run(model['input'].assign(style_image))
 
 # No problems 
 J_style = compute_style_cost(model, STYLE_LAYERS)
-J = total_cost(J_content, J_style, alpha = 10, beta = 40)
-print('!!!!!!! TEST !!!!!!!!!!!!!!')
+J = total_cost(J_content, J_style, alpha = 2, beta = 11)
+
 
 
 """!!! TENSORFLOW ISSUE"""
-optimizer = tf.train.AdamOptimizer(2.0)
+optimizer = tf.train.AdamOptimizer(0.5)
 train_step = optimizer.minimize(J)
 
-def model_nn(sess, input_image, num_iterations = 3000):
+def model_nn(sess, input_image, num_iterations = 30000):
     
     """!!! TENSORFLOW ISSUE"""
     sess.run(tf.global_variables_initializer())
     sess.run(model['input'].assign(input_image))
-    print('!!!!!!! TEST !!!!!!!!!!!!!!')
+    
 
     
     for i in range(num_iterations):
@@ -209,11 +203,11 @@ def model_nn(sess, input_image, num_iterations = 3000):
         """!!! TENSORFLOW ISSUE"""
         sess.run(train_step)
         generated_image = sess.run(model['input'])
-        print('!!!!!!! TEST !!!!!!!!!!!!!!' + str(i))
+        
 
 
         #COULD BE SOLVED AS TF2
-        if i%50 == 0:
+        if i%200 == 0:
             Jt, Jc, Js = sess.run([J, J_content, J_style])
             print("Iteration " + str(i) + " :")
             print("total cost = " + str(Jt))
